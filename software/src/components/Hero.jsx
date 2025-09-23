@@ -1,20 +1,47 @@
-import React from "react";
+import { useEffect, useState } from "react";
+import { auth } from "../firebase/config.js"; // your Firebase auth instance
+import { onAuthStateChanged } from "firebase/auth";
 import {useNavigate} from "react-router-dom";
 
 const Hero = () => {
-  const navigate = useNavigate();
+    const [user, setUser] = useState(null);
+    const navigate = useNavigate();
+
+  useEffect(() => {
+    // Listen for auth state changes
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser); // user is logged in
+      } else {
+        setUser(null); // no user
+      }
+    });
+
+    return () => unsubscribe(); // cleanup listener
+  }, []);
+
+  console.log(user)
   return (
       <section className="relative h-screen bg-gradient-to-b from-white via-green-100 to-white w-full text-sm">
         {/* Navbar */}
         <nav className="absolute top-0 left-0 right-0 flex items-center justify-between p-4 md:px-16 lg:px-24 xl:px-32 md:py-6 w-full">
-          {/* Project Title */}
-          <h3 className="text-2xl font-semibold text-green-800">Khrishi Mitra</h3>
-
-          {/* Nav Button */}
-          <button onClick={()=>navigate("/auth")} className="bg-green-700 hover:bg-green-800 text-white px-6 py-2 rounded-full font-medium hover:scale-105 transition-all  duration-300 ease-in-out">
-            Get Started
-          </button>
-        </nav>
+      {/* Project Title */}
+<div className='h-full flex items-center justify-center gap-2'> <img src="/logo.png" alt="logo" className='h-10'/>
+  <h3 className="text-2xl font-semibold text-[#009245]">Mritikka</h3></div>
+      {/* Nav Button or Welcome */}
+      {user ? (
+        <span className="text-[#009245] font-medium text-lg">
+          Welcome, {user.displayName || user.email.split("@")[0]}!
+        </span>
+      ) : (
+        <button
+          onClick={() => navigate("/auth")}
+          className="bg-green-700 hover:bg-green-800 text-white px-6 py-2 rounded-full font-medium hover:scale-105 transition-all duration-300 ease-in-out"
+        >
+          Get Started
+        </button>
+      )}
+    </nav>
 
         {/* Hero Content Centered */}
         <div className="flex flex-col items-center justify-center h-full text-center px-4">

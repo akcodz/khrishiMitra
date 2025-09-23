@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Mail, Lock, LogIn } from "lucide-react"; // Icons
-import { auth } from "../firebase/config";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { Mail, Lock, LogIn, Loader } from "lucide-react"; 
+import sanitizeInput from "../utils/sanitizeInput";
+import { adminLogin } from "../firebase/authController/auth";
 
 export default function AdminLogin() {
   const [formData, setFormData] = useState({
@@ -10,6 +10,7 @@ export default function AdminLogin() {
     password: "",
   });
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -20,29 +21,23 @@ export default function AdminLogin() {
     e.preventDefault();
     setError("");
 
-    const { email, password } = formData;
-    if (!email || !password) {
-      setError("Please fill all required fields.");
-      return;
-    }
-    if (!/\S+@\S+\.\S+/.test(email)) {
-      setError("Please enter a valid email address.");
-      return;
-    }
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters long.");
-      return;
-    }
+    const { cleanData, error } = sanitizeInput(formData, "login");
+    if (error) return setError(error);
+
+    setLoading(true);
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      navigate("/admin-dashboard");
+      const result = await adminLogin(cleanData.email, cleanData.password);
+      if (result.success) {
+        navigate("/admin-dashboard");
+      } else {
+        setError(result.error);
+      }
     } catch (err) {
       setError(err.message);
+    } finally {
+      setLoading(false);
     }
-
-    console.log("Admin logging in:", email, password);
-    navigate("/admin-dashboard");
   };
 
   return (
@@ -104,7 +99,13 @@ export default function AdminLogin() {
             type="submit"
             className="w-full h-12 rounded-full text-white text-lg font-medium bg-green-700 hover:bg-green-800 transition flex items-center justify-center gap-2"
           >
-            <LogIn className="w-6 h-6" /> Login
+            {loading ? (
+              <Loader className="animate-spin w-5 h-5" />
+            ) : (
+              <>
+                <LogIn className="w-6 h-6" /> Login
+              </>
+            )}
           </button>
         </form>
       </div>

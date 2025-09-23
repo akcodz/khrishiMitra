@@ -1,12 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Mail, Lock, User, LogIn, UserPlus } from "lucide-react"; // Icons
+import { Mail, Lock, User, LogIn, UserPlus, Loader } from "lucide-react"; // Added Loader icon
 import authImg from "../assets/auth-img.jpg";
-import { auth } from "../firebase/config";
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-} from "firebase/auth";
+import { loginUser, registerUser } from "../firebase/authController/auth";
+import sanitizeInput from "../utils/sanitizeInput";
 
 export default function AuthForm() {
   const [isLogin, setIsLogin] = useState(true);
@@ -16,68 +13,59 @@ export default function AuthForm() {
     fullName: "",
   });
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false); // <-- Loading state
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Login
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
 
-    const { email, password } = formData;
-    if (!email || !password) {
-      setError("Please fill all required fields.");
-      return;
-    }
-    if (!/\S+@\S+\.\S+/.test(email)) {
-      setError("Please enter a valid email address.");
-      return;
-    }
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters long.");
-      return;
-    }
+    const { cleanData, error } = sanitizeInput(formData, "login");
+    if (error) return setError(error);
 
+    setIsLoading(true); // start loading
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      navigate("/dashboard");
+      const result = await loginUser(cleanData.email, cleanData.password);
+      if (result.success) {
+        navigate("/dashboard");
+      } else {
+        setError(result.error);
+      }
     } catch (err) {
       setError(err.message);
+    } finally {
+      setIsLoading(false); // stop loading
     }
   };
 
-  // Register
   const handleRegister = async (e) => {
     e.preventDefault();
     setError("");
 
-    const { email, password, fullName } = formData;
-    if (!email || !password || !fullName) {
-      setError("Please fill all required fields.");
-      return;
-    }
-    if (!/\S+@\S+\.\S+/.test(email)) {
-      setError("Please enter a valid email address.");
-      return;
-    }
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters long.");
-      return;
-    }
+    const { cleanData, error } = sanitizeInput(formData, "signup");
+    if (error) return setError(error);
 
+    setIsLoading(true); // start loading
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      // Optionally, update user profile with fullName here
-      navigate("/dashboard");
+      const result = await registerUser(
+        cleanData.email,
+        cleanData.password,
+        cleanData.fullName
+      );
+      if (result.success) {
+        navigate("/dashboard");
+      } else {
+        setError(result.error);
+      }
     } catch (err) {
       setError(err.message);
+    } finally {
+      setIsLoading(false); // stop loading
     }
-
-    console.log("Registering:", fullName, email, password);
-    navigate("/dashboard");
   };
 
   return (
@@ -94,7 +82,7 @@ export default function AuthForm() {
           onSubmit={isLogin ? handleLogin : handleRegister}
         >
           <h2 className="text-4xl text-gray-900 font-semibold">
-            {isLogin ? "Sign In" : "Register"}
+            {isLogin ? "Login" : "Register"}
           </h2>
           <p className="text-sm text-gray-500/90 mt-3">
             {isLogin
@@ -149,27 +137,15 @@ export default function AuthForm() {
             />
           </div>
 
-          {/* Remember + Forgot (Login only) */}
-          {isLogin && (
-            <div className="w-full flex items-center justify-between mt-6 text-gray-500/80">
-              <div className="flex items-center gap-2">
-                <input className="h-5" type="checkbox" id="checkbox" />
-                <label className="text-sm" htmlFor="checkbox">
-                  Remember me
-                </label>
-              </div>
-              <a className="text-sm underline" href="#">
-                Forgot password?
-              </a>
-            </div>
-          )}
-
           {/* Submit Button */}
           <button
             type="submit"
+            disabled={isLoading} // disable while loading
             className="mt-8 w-full h-11 rounded-full text-white bg-green-700 hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
           >
-            {isLogin ? (
+            {isLoading ? (
+              <Loader className="animate-spin w-5 h-5" />
+            ) : isLogin ? (
               <>
                 <LogIn className="w-5 h-5" /> Login
               </>

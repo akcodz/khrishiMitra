@@ -10,10 +10,10 @@ const Footer = () => {
         {/* Left Section */}
         <div className="md:max-w-96">
           <h3 className="text-xl font-semibold mb-3 text-green-900">
-            Smart Irrigation
+            Mritikka
           </h3>
           <p className="mt-6 text-sm">
-            AgriSense 360 is a smart farming platform powered by{" "}
+            Mritikka is a smart farming platform powered by{" "}
             <span className="font-semibold text-green-900">
               IoT, AI, and Web Technologies
             </span>
@@ -62,8 +62,8 @@ const Footer = () => {
             <h2 className="font-semibold mb-5 text-green-900">Get in Touch</h2>
             <div className="text-sm space-y-2">
               <p>📞 +91-98765-43210</p>
-              <p>📧 support@agrisense360.com</p>
-              <p>🌍 www.agrisense360.com</p>
+              <p>📧 support@Mritikka.com</p>
+              <p>🌍 www.Mritikka.com</p>
             </div>
           </div>
         </div>
@@ -71,7 +71,7 @@ const Footer = () => {
       {/* Footer Bottom */}
       <p className="pt-4 text-center text-xs md:text-sm pb-5 text-gray-700">
         Copyright 2024 ©{" "}
-        <span className="font-semibold text-green-900">AgriSense 360</span>. All
+        <span className="font-semibold text-green-900">Mritikka</span>. All
         Rights Reserved.
       </p>
     </footer>

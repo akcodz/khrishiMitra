@@ -1,7 +1,8 @@
-import React from 'react';
+import { useState, useEffect } from "react";
+import { auth } from "../firebase/config";
+import { signOut } from "firebase/auth";
 import { NavLink } from 'react-router-dom';
-import {House, Droplet, Thermometer, CloudRain, Wind, AlertCircle} from 'lucide-react';
-import { LogOut } from 'lucide-react';
+import {House, Droplet, Thermometer, CloudRain, Wind, AlertCircle, LogOut , User} from 'lucide-react';
 
 const navItems = [
     { to: '/dashboard', label: 'Dashboard', Icon: House },
@@ -15,6 +16,27 @@ const navItems = [
 ];
 
 const Sidebar = ({ sidebar, setSidebar }) => {
+    const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    if (auth.currentUser) {
+      setUser(auth.currentUser);
+    }
+    // Optional: listen for auth state changes
+    const unsubscribe = auth.onAuthStateChanged((u) => setUser(u));
+    return () => unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      // Optionally, redirect to login page
+      window.location.href = "/";
+    } catch (err) {
+      console.error("Logout Error:", err);
+    }
+  };
+  
     return (
         <div
             className={`
@@ -53,20 +75,28 @@ const Sidebar = ({ sidebar, setSidebar }) => {
             </div>
 
             {/* Footer */}
-            <div className="w-full border-t border-gray-200 p-4 px-6 flex items-center justify-between">
-                <div className="flex gap-2 items-center">
-                    <img
-                        src="https://via.placeholder.com/40"
-                        alt="User avatar"
-                        className="w-10 h-10 rounded-full object-cover"
-                    />
-                    <div>
-                        <h1 className="text-sm font-medium text-slate-700">John Doe</h1>
-                        <p className="text-xs text-gray-500">Farmer Plan</p>
-                    </div>
-                </div>
-                <LogOut className="w-5 h-5 text-gray-400 hover:text-gray-700 cursor-pointer" />
-            </div>
+              <div className="w-full border-t border-gray-200 p-4 px-6 flex items-center justify-between">
+      <div className="flex gap-2 items-center">
+        {/* User Icon */}
+        <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+          <User className="w-6 h-6 text-green-700" />
+        </div>
+
+        {/* Display Name */}
+        <div className="pl-3">
+          <h1 className="text-sm font-medium text-slate-700">
+            {user?.displayName || user?.email.split("@")[0] || "User"}
+          </h1>
+          <p className="text-xs text-gray-500">Farmer</p>
+        </div>
+      </div>
+
+      {/* Logout Icon */}
+      <LogOut
+        className="w-5 h-5 text-gray-400 hover:text-gray-700 cursor-pointer"
+        onClick={handleLogout}
+      />
+    </div>
         </div>
     );
 };
